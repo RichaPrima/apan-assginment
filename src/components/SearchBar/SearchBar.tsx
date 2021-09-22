@@ -15,13 +15,17 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   searchValue,
   onSearch,
 }) => {
+  const onChange = (event: any) => {
+    if(onSearch){
+      const value = event.target.value;
+      onSearch(value);
+    }
+  };
+
   return (
     <div className={cx(className, styles.searchbar)}>
       <input
-        id={"searchBar"}
-        onChange={(event) => {
-          onSearch(event.target.value);
-        }}
+        onChange={onChange}
         type="text"
         name="search"
         value={searchValue}

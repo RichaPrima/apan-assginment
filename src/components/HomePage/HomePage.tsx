@@ -19,19 +19,8 @@ export const HomePage = () => {
   }, [page]);
 
   const fetchData = async () => {
-    // setApiInProgress(true);
-    // return axios
-    //   .get(
-    //     `https://api.themoviedb.org/3/discover/movie?api_key=55903b004b65252bf433fb4218601d2c&la
-    //     nguage=en-US&sort_by=popularity.desc&page=${page}`
-    //   )
-    //   .then((response) => {
-    //     console.log("J", response.data);
-    //     setMovies(response.data.results);
-    //     setApiInProgress(false);
-    //   });
+    setApiInProgress(true);
     try {
-      setApiInProgress(true);
       const moviesData = await getApi("/movie", {
         api_key: "55903b004b65252bf433fb4218601d2c",
         language: "en-US",
@@ -39,10 +28,10 @@ export const HomePage = () => {
         page: page,
       });
       setMovies(moviesData.results);
-      setApiInProgress(false);
     } catch (err) {
-      setApiInProgress(false);
+      console.error(err);
     }
+    setApiInProgress(false);
   };
 
   const search = (searchValue: string) => {
@@ -53,34 +42,26 @@ export const HomePage = () => {
     return movie.title.toLowerCase().indexOf(searchValue.toLowerCase()) !== -1;
   };
 
+  const filteredMovieData = movies
+    .filter(filterMovies)
+    .map((movie) => (
+      <MovieCard
+        key={movie.id}
+        name={movie.title}
+        imgUrl={movie.backdrop_path}
+        rating={movie.vote_average}
+        ratingCount={movie.vote_count}
+        releaseDate={movie.release_date}
+      />
+    ));
+
   return (
     <div className={styles.main}>
-      <Header onSearch={search} />
+      <Header onSearch={search} searchValue={searchValue} />
       {apiInProgress ? (
         <div>Loading...</div>
       ) : (
-        <div className={styles.movieContainer}>
-          {/* {movies?.map((movie) => (
-            <MovieCard
-              key={movie.id}
-              name={movie.title}
-              imgUrl={movie.backdrop_path}
-              rating={movie.vote_average}
-              ratingCount={movie.vote_count}
-              releaseDate={movie.release_date}
-            />
-          ))} */}
-          {movies.filter(filterMovies).map((movie) => (
-            <MovieCard
-              key={movie.id}
-              name={movie.title}
-              imgUrl={movie.backdrop_path}
-              rating={movie.vote_average}
-              ratingCount={movie.vote_count}
-              releaseDate={movie.release_date}
-            />
-          ))}
-        </div>
+        <div className={styles.movieContainer}>{filteredMovieData}</div>
       )}
     </div>
   );
