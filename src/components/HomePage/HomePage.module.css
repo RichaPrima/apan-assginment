@@ -20,6 +20,14 @@
   gap: 50px 80px;
 }
 
+.message{
+    font-size: 48px;
+    margin-top: 48px;
+    font-weight: 500;
+    color: #ffffff;
+    text-align: center;
+}
+
 @media only screen and (max-width: 768px) {
   .movieContainer {
     grid-template-columns: 1fr 1fr;
