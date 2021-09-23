@@ -19,7 +19,9 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   const onChange = (event: ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
     setInput(value);
-    onSearch(value);
+    if(onSearch){
+      onSearch(value);
+    }
   };
 
   return (
