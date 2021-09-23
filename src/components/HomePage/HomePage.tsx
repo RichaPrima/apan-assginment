@@ -1,102 +1,99 @@
-import { useEffect, useRef, useState } from "react";
-import { UseInfiniteScroll } from "../../customHooks/useInfiniteScroll";
-import { getApi } from "../../services/api/api.service";
-import { MovieType } from "../../types/types";
-import { Header } from "../Header/Header";
-import { Loader } from "../Loader/Loader";
-import { MovieCard } from "../MovieCard/MovieCard";
+import {useEffect, useMemo, useRef, useState} from "react";
+import {useInfiniteScroll} from "../../customHooks/useInfiniteScroll";
+import {getMovies} from "../../services/api/api.service";
+import {MovieType} from "../../types/types";
+import {Header} from "../Header/Header";
+import {Loader} from "../Loader/Loader";
+import {MovieCard} from "../MovieCard/MovieCard";
 
 import styles from "./HomePage.module.css";
-
-// ToDo
-// Debouncing
-// No movies
+import {debounce} from "../../utils/common";
 
 export const HomePage = () => {
-  const [movies, setMovies] = useState<MovieType[]>([]);
-  const [apiInProgress, setApiInProgress] = useState(false);
-  const [searchValue, setSearchValue] = useState("");
-  const [page, setPage] = useState(1);
+    const [movies, setMovies] = useState<MovieType[]>([]);
+    const [apiInProgress, setApiInProgress] = useState(false);
+    const [searchValue, setSearchValue] = useState("");
+    const [page, setPage] = useState(1);
 
-  const rootRef = useRef<HTMLDivElement>(null);
+    const rootRef = useRef<HTMLDivElement>(null);
 
-  const [node, entry] = UseInfiniteScroll({
-    root: rootRef.current,
-    rootMargin: "24px",
-    threshold: 0.75,
-  });
+    const [node, entry] = useInfiniteScroll({
+        root: rootRef.current,
+        rootMargin: "24px",
+        threshold: 0.75,
+    });
 
-  useEffect(() => {
-    if (entry?.isIntersecting) {
-      setPage((prev) => prev + 1);
-    }
-  }, [entry?.isIntersecting]);
+    useEffect(() => {
+        if (entry?.isIntersecting) {
+            setPage((prev) => prev + 1);
+        }
+    }, [entry?.isIntersecting]);
 
-  const fetchMovieData = async () => {
-    setApiInProgress(true);
-    try {
-      const moviesData = await getApi("/discover/movie", {
-        api_key: "55903b004b65252bf433fb4218601d2c",
-        language: "en-US",
-        sort_by: "popularity.desc",
-        page: page,
-      });
-      if (page === 1) setMovies(moviesData.results);
-      else setMovies((prev) => [...prev, ...moviesData.results]);
-    } catch (err) {
-      console.error(err);
-    }
-    setApiInProgress(false);
-  };
+    const fetchMovieData = async () => {
+        setApiInProgress(true);
+        const res = await getMovies(page)
+        if (res?.data) {
+            if (page === 1) {
+                setMovies(res.data.results)
+            } else {
+                setMovies((prev) => [...prev, ...res.data.results])
+            }
+        }
 
-  const search = (searchValue: string) => {
-    setSearchValue(searchValue);
-  };
+        setApiInProgress(false);
+    };
 
-  useEffect(() => {
-    fetchMovieData();
-  }, [page]);
+    const handleSearchChange = debounce((searchValue: string) => {
+        setSearchValue(searchValue);
+    }, 300);
 
-  const filterMovies = (movie: MovieType) => {
-    return movie?.title?.toLowerCase().includes(searchValue.toLowerCase());
-  };
+    useEffect(() => {
+        fetchMovieData();
+    }, [page]);
 
-  const filteredMovieData = movies
-    .filter(filterMovies)
-    .map((movie, index, arr) => (
-      <div
-        ref={index === arr.length - 1 && searchValue.length === 0 ? node : null}
-        key={movie.id}
-      >
-        <MovieCard
-          name={movie.title}
-          imgUrl={movie.backdrop_path}
-          rating={movie.vote_average}
-          ratingCount={movie.vote_count}
-          releaseDate={movie.release_date}
-        />
-      </div>
-    ));
+    const filteredMovies = useMemo(() => {
+        return movies.filter((movie) => {
+            return movie?.title?.toLowerCase().includes(searchValue.toLowerCase());
+        }).map((movie) => <MovieCard
+            name={movie.title}
+            imgUrl={movie.backdrop_path}
+            rating={movie.vote_average}
+            ratingCount={movie.vote_count}
+            releaseDate={movie.release_date}
+        />);
+    }, [searchValue])
 
-  return (
-    <div className={styles.main}>
-      <Header onSearch={search} searchValue={searchValue} />
-      {searchValue.length > 0 ? (
-        <h1>Search Results</h1>
-      ) : (
-        <h1>Latest Movies</h1>
-      )}
-      {/* {apiInProgress ? (
-        <Loader />
-      ) : (
-        <div className={styles.movieContainer} ref={rootRef}>
-          {filteredMovieData}
+    const allMovies = useMemo(() => movies
+        .map((movie, index, arr) => (
+            <div
+                ref={index === arr.length - 1 && searchValue.length === 0 ? node : null}
+                key={movie.id}
+            >
+                <MovieCard
+                    name={movie.title}
+                    imgUrl={movie.backdrop_path}
+                    rating={movie.vote_average}
+                    ratingCount={movie.vote_count}
+                    releaseDate={movie.release_date}
+                />
+            </div>
+        )), [movies, node, searchValue.length])
+
+    return (
+        <div className={styles.main}>
+            <Header onSearchTextChanged={handleSearchChange}/>
+            {searchValue.length > 0 ? (
+                <h1>Search Results</h1>
+            ) : (
+                <h1>Latest Movies</h1>
+            )}
+
+            <div className={styles.movieContainer} ref={rootRef}>
+                {searchValue?.length === 0 ? allMovies : filteredMovies}
+            </div>
+
+            {searchValue?.length > 0 && filteredMovies.length === 0 && "No results"}
+            {apiInProgress && <Loader/>}
         </div>
-      )} */}
-      <div className={styles.movieContainer} ref={rootRef}>
-          {filteredMovieData}
-        </div>
-        {apiInProgress && <Loader />}
-    </div>
-  );
+    );
 };

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-export const UseInfiniteScroll = ({
+export const useInfiniteScroll = ({
   root = null,
   rootMargin = "0px",
   threshold = 0,
