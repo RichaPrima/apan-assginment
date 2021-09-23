@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const config = {
-  api: "https://api.themoviedb.org/3/discover",
+  api: "https://api.themoviedb.org/3",
 };
 
 export const getApi = async (endpoint: string, configData: any) => {

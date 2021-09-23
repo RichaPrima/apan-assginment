@@ -3,6 +3,7 @@
   background-color: #232c45;
   border-radius: 16px 16px 0px 0px;
   box-shadow: 0 3.7px 30.4px #00000d ;
+  height: 100%;
 }
 .moviePoster {
   object-fit: contain;

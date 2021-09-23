@@ -49,8 +49,6 @@ export const MovieCard: React.FC<MovieCardProps> = ({
       <img
         src={`https://image.tmdb.org/t/p/w500/${imgUrl}`}
         alt={"Movie's Poster"}
-        // width={"380px"}
-        // height={"380px"}
         className={styles.moviePoster}
       />
       <div className={styles.movieInfo}>
